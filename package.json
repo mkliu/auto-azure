@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/mkliu/auto-azure/issues"
   },
-  "homepage": "https://github.com/mkliu/auto-azure#readme"
+  "homepage": "https://github.com/mkliu/auto-azure#readme",
+  "dependencies": {
+    "azure-scripty": "^1.0.1"
+  }
 }
