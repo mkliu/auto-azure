@@ -17,9 +17,48 @@ var qAzureInvoke = Q.denodeify(scripty.invoke)
 
 // azure login -u xxx--service-principal --tenant xxx
  
+ function nodeTest(a,b, callback)
+ {
+   callback(a,b);
+ }
  
+ function test()
+ {
+   var qtest = Q.denodeify(nodeTest);
+ 
+ qtest(null, 'b')
+ .then(function(response)
+   {
+     return qtest(null, 'b2')
+     .then(function()
+       {
+         console.log('rethrow error error')
+         throw Error('throwing an error')
+       })
+     .catch(function(error)
+       {
+         console.log('inside error')
+         // throw new Error('new error')
+       })
+   })
+   .then(function(response)
+     {
+       console.log('outside then')
+     })
+ .catch(function(error)
+   {
+     console.log('outside error', error)
+   })
+   .done(function(response)
+     {
+       console.log('outside done', response)
+     })
+ }
+ 
+ // test();
+   
 function ensureCreateResourceGroupExists(resourceGroupName, location) {
-  console.info('Checking if resourceGroup', resourceGroupName, 'exists')
+  console.log('Checking if resourceGroup', resourceGroupName, 'exists')
   var showCmd = {
     command: 'group show',
     positional: [resourceGroupName],
@@ -33,25 +72,51 @@ function ensureCreateResourceGroupExists(resourceGroupName, location) {
 
   return qAzureInvoke(showCmd)
     .then(function (response) {
-      console.info(resourceGroupName, ' exists')
+      console.log(resourceGroupName, ' exists')
     })
     .catch(function (err) {
       console.error(err);
-      console.info(resourceGroupName, ' does not exists. Creating one')
+      console.log(resourceGroupName, ' does not exists. Creating one')
       return qAzureInvoke(createCmd)
+      .then(function(response)
+        {
+          if(_.isString(response) && response.indexOf('"Succeeded"'))
+          {
+            console.log('ResourceGroup creation succeeded.');
+          }
+          else
+          {
+            throw Error('ResourceGroup failed.')
+          }
+        }
+      )
+      .catch(function(err, response)
+        {
+          console.log('ResourceGroup creation completed with', response);
+          // parsing error could happen even when creation is successful
+          if(response && response.indexOf('"Succeeded"'))
+          {
+            console.log('ResourceGroup creation succeeded.');
+          }
+          else
+          {
+            throw Error('ResourceGroup failed.')
+          }
+        })
+      
     })
 }
 
 function deploySql(config, params) {
-  console.info('Creating SQL server');
+  console.log('Creating SQL server');
   var sqlArmPath = path.resolve('arm', 'sql', 'azuredeploy.json')
   var currentdeploymentName = config.deploymentBaseName + "sql";
 
   var cmd = {
     command: 'group deployment create',
     name: currentdeploymentName,
-    // parameters: '"' + JSON.stringify(params).replace(/"/g, '\\"') + '"',
-    parameters: "'" + JSON.stringify(params) + "'",
+    parameters: '"' + JSON.stringify(params).replace(/"/g, '\\"') + '"',
+    // parameters: "'" + JSON.stringify(params) + "'",
     short:
     {
       g: config.resourceGroup,
@@ -62,20 +127,21 @@ function deploySql(config, params) {
   return qAzureInvoke(cmd)
   .then(function(response)
     {
-      console.info('SQL server created successfully');
+      console.log('SQL server created successfully');
       return response;
     })
-  .catch(function(err)
+  .catch(function(err, response)
     {
       var timeout = 10000;
-      console.error('Deploy failed. Wait for', timeout, 'ms and retrieving deployment log (Azure needs some time):');
+      console.error('Deploy failed with', err, response, 'Wait for', timeout, 'ms and retrieving deployment log (Azure needs some time):');
       setTimeout(function() {
         util.showDeploymentLog(config.resourceGroup, currentdeploymentName)
       }, timeout);
     });
 }
 
-ensureCreateResourceGroupExists(config.resourceGroup, config.location)
+function start() {
+  ensureCreateResourceGroupExists(config.resourceGroup, config.location)
   .then(function (response) {
        return deploySql(config, config.sql)
       }
@@ -84,8 +150,11 @@ ensureCreateResourceGroupExists(config.resourceGroup, config.location)
     console.error(err)
   })
   .done(function (response) {
-    console.info('Completed', response)
+    console.log('Completed', response)
   })
+}
+
+start();
     
 
 // console.log(armPath)

@@ -19,7 +19,7 @@ var config =
     workerSize: 0,
     repoUrl: "https://github.com/mkliu/ToDoApp",
     project: "ContosoUniversity\\ContosoUniversity\\ContosoUniversity.csproj",
-    resourceGroup: "wayliu",
+    resourceGroup: "wayliutest5",
     sql:
     {
       environment:
