@@ -156,11 +156,11 @@ function go() {
       + '@' + config.sql.sqlServerName.value
       + ';Password=' + config.sql.sqlServerAdminPassword.value + ';';
 
-      console.log('Setting sqlConnection to Keyvault:', config.keyVault.vaultName, config.appName, sqlConn);
+      console.log('Setting sqlConnection to Keyvault:', config.keyVault.vaultName, 'keyName:', config.appName);
       return setKeyVault(config.keyVault.vaultName, config.appName, sqlConn)
     })
     .then(function (response) {
-      console.log('Setting keyVault uri to webapp. Previous response', response);
+      console.log('KeyVault updated successfully, now setting keyVault uri to webapp.');
       config.webapp.secretUri.value = response.id
       // reuse the external sqlConn for now
       config.webapp.sqlConn.value = sqlConn;
@@ -170,7 +170,7 @@ function go() {
       console.error(err)
     })
     .done(function (response) {
-      console.log('Completed', response)
+      console.log('Completed')
     })
 }
 
