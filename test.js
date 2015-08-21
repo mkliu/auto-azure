@@ -17,45 +17,37 @@ var qAzureInvoke = Q.denodeify(scripty.invoke)
 
 // azure login -u xxx--service-principal --tenant xxx
  
- function nodeTest(a,b, callback)
- {
-   callback(a,b);
- }
+function nodeTest(a, b, callback) {
+  callback(a, b);
+}
+
+function test() {
+  var qtest = Q.denodeify(nodeTest);
+
+  qtest(null, 'b')
+    .then(function (response) {
+      return qtest(null, 'b2')
+        .then(function () {
+          console.log('rethrow error error')
+          throw Error('throwing an error')
+        })
+        .catch(function (error) {
+          console.log('inside error')
+          // throw new Error('new error')
+        })
+    })
+    .then(function (response) {
+      console.log('outside then')
+    })
+    .catch(function (error) {
+      console.log('outside error', error)
+    })
+    .done(function (response) {
+      console.log('outside done', response)
+    })
+}
  
- function test()
- {
-   var qtest = Q.denodeify(nodeTest);
- 
- qtest(null, 'b')
- .then(function(response)
-   {
-     return qtest(null, 'b2')
-     .then(function()
-       {
-         console.log('rethrow error error')
-         throw Error('throwing an error')
-       })
-     .catch(function(error)
-       {
-         console.log('inside error')
-         // throw new Error('new error')
-       })
-   })
-   .then(function(response)
-     {
-       console.log('outside then')
-     })
- .catch(function(error)
-   {
-     console.log('outside error', error)
-   })
-   .done(function(response)
-     {
-       console.log('outside done', response)
-     })
- }
- 
- // test();
+// test();
    
 function ensureCreateResourceGroupExists(resourceGroupName, location) {
   console.log('Checking if resourceGroup', resourceGroupName, 'exists')
@@ -78,83 +70,143 @@ function ensureCreateResourceGroupExists(resourceGroupName, location) {
       console.error(err);
       console.log(resourceGroupName, ' does not exists. Creating one')
       return qAzureInvoke(createCmd)
-      .then(function(response)
-        {
-          if(_.isString(response) && response.indexOf('"Succeeded"'))
-          {
+        .then(function (response) {
+          if (_.isString(response) && response.indexOf('"Succeeded"')) {
             console.log('ResourceGroup creation succeeded.');
           }
-          else
-          {
+          else {
             throw Error('ResourceGroup failed.')
           }
         }
-      )
-      .catch(function(err, response)
-        {
+          )
+        .catch(function (err, response) {
           console.log('ResourceGroup creation completed with', response);
           // parsing error could happen even when creation is successful
-          if(response && response.indexOf('"Succeeded"'))
-          {
+          if (response && response.indexOf('"Succeeded"')) {
             console.log('ResourceGroup creation succeeded.');
           }
-          else
-          {
+          else {
             throw Error('ResourceGroup failed.')
           }
         })
-      
+
     })
 }
 
-function deploySql(config, params) {
-  console.log('Creating SQL server');
-  var sqlArmPath = path.resolve('arm', 'sql', 'azuredeploy.json')
-  var currentdeploymentName = config.deploymentBaseName + "sql";
+function invokeAzureDeployment(templatePath, params, name, config) {
+  console.log('Creating ' + name);
+  templatePath
+  var currentdeploymentName = config.deploymentBaseName + name;
 
+  var escpatedParams = JSON.stringify(params)
+    .replace(/\\/g, '\\\\');
+
+  escpatedParams = escpatedParams.replace(/"/g, '\\"')
   var cmd = {
     command: 'group deployment create',
     name: currentdeploymentName,
-    parameters: '"' + JSON.stringify(params).replace(/"/g, '\\"') + '"',
+    parameters: '"' + escpatedParams + '"',
     // parameters: "'" + JSON.stringify(params) + "'",
     short:
     {
       g: config.resourceGroup,
-      f: '"' + sqlArmPath + '"'
+      f: '"' + templatePath + '"'
     }
   };
 
   return qAzureInvoke(cmd)
-  .then(function(response)
-    {
-      console.log('SQL server created successfully');
+    .then(function (response) {
+      console.log(name + 'deployed successfully', response);
       return response;
     })
-  .catch(function(err, response)
-    {
+    .catch(function (err, response) {
       var timeout = 10000;
-      console.error('Deploy failed with', err, response, 'Wait for', timeout, 'ms and retrieving deployment log (Azure needs some time):');
-      setTimeout(function() {
+      console.error('Deploy failed with', err, response, 'Wait for', timeout, 'ms to retrieve deployment log (Azure needs some time):');
+      setTimeout(function () {
         util.showDeploymentLog(config.resourceGroup, currentdeploymentName)
       }, timeout);
     });
 }
 
-function start() {
-  ensureCreateResourceGroupExists(config.resourceGroup, config.location)
-  .then(function (response) {
-       return deploySql(config, config.sql)
-      }
+function deploySql(config, params) {
+  return invokeAzureDeployment(
+    path.resolve('arm', 'sql', 'azuredeploy.json'),
+    params,
+    'sql',
+    config
     )
-  .catch(function (err) {
-    console.error(err)
-  })
-  .done(function (response) {
-    console.log('Completed', response)
-  })
 }
 
-start();
+function deployWebapp(config, params) {
+  return invokeAzureDeployment(
+    path.resolve('arm', 'webapp', 'azuredeploy.json'),
+    params,
+    'webapp',
+    config
+    )
+}
+
+function setKeyVault(vaultName, keyName, value) {
+  return qAzureInvoke(
+    {
+      command: "keyvault secret set",
+      short:
+      {
+        u: vaultName,
+        s: keyName
+      },
+      value: value
+    }
+    )
+}
+
+// will remove once website is loading from secrete store
+var sqlConn;
+
+function start() {
+  qAzureInvoke(
+    "config mode arm"
+    ).then(function (response) {
+      return ensureCreateResourceGroupExists(config.resourceGroup, config.location)
+    })
+    .then(function (response) {
+      return deploySql(config, config.sql)
+    }
+      )
+    .then(function (response) {
+      console.log('Setting sqlConnection to Keyvault', config.keyVault.vaultName, config.appName, sqlConn);
+      
+      // FQDN should come from azure cli output, but it has problem returnning valid json output, https://github.com/Azure/azure-xplat-cli/issues/2049
+      // So let's concat ourselves first wayliutododev.database.windows.net
+      var sqlFQDN = config.sql.sqlServerName + '.database.windows.net';
+      
+      // now the sql connection
+      sqlConn = 'Data Source=tcp:' + sqlFQDN
+        + ',1433;Initial Catalog=' + config.sql.sqlDbName
+        + ';User Id=' + config.sql.sqlServerAdminLogin
+        + '@' + config.sql.sqlServerName
+        + ';Password=' + config.sql.sqlServerAdminPassword + ';';
+      setKeyVault(config.keyVault.vaultName, config.appName, sqlConn)
+    })
+    .then(function (response) {
+      console.log('Setting key uri ', response.id, 'to webapp');
+      config.webapp.secretUri = response.id
+      // reuse the external sqlConn for now
+      config.webapp.sqlConn.value = sqlConn;
+      return deployWebapp(config, config.webapp)
+    })
+    .catch(function (err) {
+      console.error(err)
+    })
+    .done(function (response) {
+      console.log('Completed', response)
+    })
+}
+
+deployWebapp(config, config.webapp)
+
+// setKeyVault(config.keyVault.vaultName, config.appName, 'sqlConn')
+// start();
     
 
 // console.log(armPath)

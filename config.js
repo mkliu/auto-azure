@@ -9,17 +9,70 @@ var location = "East US";
 
 var config =
   {
+    appName: appName,
     deploymentBaseName: deploymentBaseName,
     location: location,
-    keyVaultName: "wayliukeyvault",
+    keyVault:
+    {
+      vaultName: "wayliukeyvault",
+    },
     environment: environmentType,
-    siteName: appName,
-    siteLocation: location,
-    sku: "Free",
-    workerSize: 0,
-    repoUrl: "https://github.com/mkliu/ToDoApp",
-    project: "ContosoUniversity\\ContosoUniversity\\ContosoUniversity.csproj",
     resourceGroup: "wayliutest5",
+    webapp:
+    {
+      environment:
+      {
+        value: environmentType
+      },
+      siteName:
+      {
+        value: appName
+      },
+      hostingPlanName:
+      {
+        value: appName
+      },
+      siteLocation:
+      {
+        value: location
+      },
+      sku:
+      {
+        value: "Free"
+      },
+      workerSize:
+      {
+        value: '0'
+      },
+      repoUrl:
+      {
+        value: "https://github.com/mkliu/ToDoApp"
+      },
+      project:
+      {
+        value: "ContosoUniversity\\ContosoUniversity\\ContosoUniversity.csproj"
+      },
+      branch:
+      {
+        value: "master"
+      },
+      clientId:
+      {
+        value: "clientId"
+      },
+      clientSecret:
+      {
+        value: "clientSecret"
+      },
+      secretUri:
+      {
+        value: "secretUri"
+      },
+      sqlConn:
+      {
+        value: ""
+      }
+    },
     sql:
     {
       environment:
