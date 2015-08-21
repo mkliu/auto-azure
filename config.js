@@ -12,7 +12,7 @@ var coreParams =
   env: "dev",
   location: "East US",
   sqlUser: "yaoguai",
-  sqlPassword: generatePassword(15, false),
+  sqlPassword: generatePassword(15, false) + '!0',
   resourceGroup: "wayliutest",
   vaultName: "wayliukeyvault",
   clientId: "clientId",
