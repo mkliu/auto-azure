@@ -12,6 +12,9 @@
   },
   "author": "",
   "license": "MIT",
+  "bin": {
+    "AutoAzure": "./bin/run.js"
+  },
   "bugs": {
     "url": "https://github.com/mkliu/auto-azure/issues"
   },
@@ -24,6 +27,8 @@
     "colors": "^1.1.2",
     "lodash": "^3.10.1",
     "moment": "^2.10.6",
+    "optimist": "^0.6.1",
+    "password-generator": "^1.0.0",
     "prettyjson": "^1.1.3",
     "q": "^1.4.1",
     "uuid": "^2.0.1"

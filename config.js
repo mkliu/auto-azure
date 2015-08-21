@@ -1,12 +1,12 @@
 
 var moment = require('moment');
-
+var generatePassword = require('password-generator');
 var environmentType = "dev";
 var appName = "wayliutodo" + environmentType;
 var deploymentBaseName = appName + moment().format('YYMMDD_HHmmss');
-
 var location = "East US";
 
+var sqlPassword = generatePassword(15, false)
 var config =
   {
     appName: appName,
@@ -93,11 +93,11 @@ var config =
       },
       sqlServerAdminLogin:
       {
-        value: "wayliu"
+        value: "yaoguai"
       },
       sqlServerAdminPassword:
       {
-        value: "!Microsoftxxx1"
+        value: sqlPassword
       },
       sqlServerLocation:
       {

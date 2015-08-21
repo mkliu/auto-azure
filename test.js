@@ -5,7 +5,8 @@ var util = require('./util');
 var async = require('async');
 var path = require('path')
 var Q = require('q');
-var config = require('./config')
+var config = require('./config');
+var os = require('os');
 
 var qAzureInvoke = Q.denodeify(scripty.invoke)
 // New-AzureKeyVault -VaultName 'WayliuContosoKeyVault' -ResourceGroupName 'ContosoResourceGroup' -Location 'East Asia'
@@ -93,19 +94,28 @@ function ensureCreateResourceGroupExists(resourceGroupName, location) {
     })
 }
 
+function escapeParamsString(paramString)
+{
+  if(os.platform() === 'win32' )
+  {
+      return '"' + paramString.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+  }
+  else
+  {
+    // use single quotes on mac otherwise mac bash would expand things like !
+    return "'" + paramString.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+  }
+}
+
 function invokeAzureDeployment(templatePath, params, name, config) {
   console.log('Creating ' + name);
   templatePath
   var currentdeploymentName = config.deploymentBaseName + name;
 
-  var escpatedParams = JSON.stringify(params)
-    .replace(/\\/g, '\\\\');
-
-  escpatedParams = escpatedParams.replace(/"/g, '\\"')
   var cmd = {
     command: 'group deployment create',
     name: currentdeploymentName,
-    parameters: '"' + escpatedParams + '"',
+    parameters: escapeParamsString(JSON.stringify(params)),
     // parameters: "'" + JSON.stringify(params) + "'",
     short:
     {
@@ -155,7 +165,7 @@ function setKeyVault(vaultName, keyName, value) {
         u: vaultName,
         s: keyName
       },
-      value: value
+      value: escapeParamsString(value)
     }
     )
 }
@@ -174,23 +184,23 @@ function start() {
     }
       )
     .then(function (response) {
-      console.log('Setting sqlConnection to Keyvault', config.keyVault.vaultName, config.appName, sqlConn);
-      
       // FQDN should come from azure cli output, but it has problem returnning valid json output, https://github.com/Azure/azure-xplat-cli/issues/2049
       // So let's concat ourselves first wayliutododev.database.windows.net
-      var sqlFQDN = config.sql.sqlServerName + '.database.windows.net';
+      var sqlFQDN = config.sql.sqlServerName.value + '.database.windows.net';
       
       // now the sql connection
       sqlConn = 'Data Source=tcp:' + sqlFQDN
-        + ',1433;Initial Catalog=' + config.sql.sqlDbName
-        + ';User Id=' + config.sql.sqlServerAdminLogin
-        + '@' + config.sql.sqlServerName
-        + ';Password=' + config.sql.sqlServerAdminPassword + ';';
-      setKeyVault(config.keyVault.vaultName, config.appName, sqlConn)
+        + ',1433;Initial Catalog=' + config.sql.sqlDbName.value
+        + ';User Id=' + config.sql.sqlServerAdminLogin.value
+        + '@' + config.sql.sqlServerName.value
+        + ';Password=' + config.sql.sqlServerAdminPassword.value + ';';
+
+      console.log('Setting sqlConnection to Keyvault:', config.keyVault.vaultName, config.appName, sqlConn);
+      return setKeyVault(config.keyVault.vaultName, config.appName, sqlConn)
     })
     .then(function (response) {
-      console.log('Setting key uri ', response.id, 'to webapp');
-      config.webapp.secretUri = response.id
+      console.log('Setting keyVault uri to webapp. Previous response', response);
+      config.webapp.secretUri.value = response.id
       // reuse the external sqlConn for now
       config.webapp.sqlConn.value = sqlConn;
       return deployWebapp(config, config.webapp)
@@ -203,10 +213,19 @@ function start() {
     })
 }
 
-deployWebapp(config, config.webapp)
+// deployWebapp(config, config.webapp)
 
-// setKeyVault(config.keyVault.vaultName, config.appName, 'sqlConn')
-// start();
+// sqlConn = 'Data Source=tcp:' + 'xxx'
+//         + ',1433;Initial Catalog=' + config.sql.sqlDbName.value
+//         + ';User Id=' + config.sql.sqlServerAdminLogin.value
+//         + '@' + config.sql.sqlServerName.value
+//         + ';Password=' + config.sql.sqlServerAdminPassword.value + ';';
+// setKeyVault(config.keyVault.vaultName, config.appName, sqlConn)
+// .then(function(response)
+//   {
+//     console.log(response)
+//   })
+start();
     
 
 // console.log(armPath)
