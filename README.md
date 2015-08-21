@@ -1,7 +1,5 @@
 AutoAzure 
 ==============
-
-# Description
  Your Azure Automation   
 
 # Install
