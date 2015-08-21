@@ -56,7 +56,7 @@ npm install -g git+https://github.com/mkliu/auto-azure
     Executing ==>  azure group create  --name testapp --location "East US"
     ResourceGroup creation succeeded.
     Creating sql
-    Executing ==>  azure group deployment create  -g testapp -f "/Users/wayliu/git/arm/auto-azure/arm/sql/azuredeploy.json" --name newappdev150821_034425sql --parameters '{"environment":{"value":"dev"},"sqlDBEdition":{"value":"Web"},"sqlServerName":{"value":"newappdev"},"sqlDbName":{"value":"DemosDB"},"sqlServerAdminLogin":{"value":"yaoguai"},"sqlServerAdminPassword":{"value":"UdBlkQJWZXuBvyA"},"sqlServerLocation":{"value":"East US"}}'
+    Executing ==>  azure group deployment create  -g testapp -f "/Users/wayliu/git/arm/auto-azure/arm/sql/azuredeploy.json" --name newappdev150821_034425sql --parameters '{"environment":{"value":"dev"},"sqlDBEdition":{"value":"Web"},"sqlServerName":{"value":"newappdev"},"sqlDbName":{"value":"DemosDB"},"sqlServerAdminLogin":{"value":"yaoguaifwer23r"},"sqlServerAdminPassword":{"value":"Udfsdfewr2324BlkQJWZXuBvyA"},"sqlServerLocation":{"value":"East US"}}'
    ```
    
    If ARM deployment fails, normally you see the following, it just tells you it failed without giving you the reason. And you need to open up Azure portal to figure out why:
