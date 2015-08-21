@@ -1,0 +1,91 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+       "environment": {
+            "type": "string"
+        },
+        "sqlServerName": {
+            "type": "string"
+        },
+        "sqlServerLocation": {
+            "type": "string"
+        },
+        "sqlServerAdminLogin": {
+            "type": "string"
+        },
+        "sqlServerAdminPassword": {
+            "type": "securestring"
+        },
+        "sqlDbName": {
+            "type": "string",
+            "defaultValue": "DemosDB"
+        },
+        "sqlDbCollation": {
+            "type": "string",
+            "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+        },
+        "sqlDbEdition": {
+            "type": "string",
+            "defaultValue": "Web"
+        },
+        "sqlDbMaxSizeBytes": {
+            "type": "string",
+            "defaultValue": "1073741824"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2014-04-01-preview",
+            "name": "[parameters('sqlServerName')]",
+            "type": "Microsoft.Sql/servers",
+            "location": "[parameters('sqlServerLocation')]",
+            "tags": {
+                "displayName": "SQLServer",
+                "environment": "[parameters('environment')]"
+            },
+            "properties": {
+                "administratorLogin": "[parameters('sqlServerAdminLogin')]",
+                "administratorLoginPassword": "[parameters('sqlServerAdminPassword')]"
+            },
+            "resources": [
+                {
+                    "apiVersion": "2014-11-01",
+                    "name": "[parameters('sqlDbName')]",
+                    "type": "databases",
+                    "location": "[parameters('sqlServerLocation')]",
+                    "tags": {
+                        "displayName": "SQLDatabase"
+                    },
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
+                    ],
+                    "properties": {
+                        "edition": "[parameters('sqlDbEdition')]",
+                        "collation": "[parameters('sqlDbCollation')]",
+                        "maxSizeBytes": "[parameters('sqlDbMaxSizeBytes')]"
+                    }
+                },
+                {
+                    "apiVersion": "2014-11-01",
+                    "name": "SQLServerFirewallRules",
+                    "type": "firewallrules",
+                    "location": "[parameters('sqlServerLocation')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
+                    ],
+                    "properties": {
+                        "endIpAddress": "0.0.0.0",
+                        "startIpAddress": "0.0.0.0"
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "fullyQualifiedDomainName": {
+            "type": "string",
+            "value": "[reference(concat('Microsoft.Sql/servers/', parameters('sqlServerName'))).fullyQualifiedDomainName]"
+        }
+    }
+}
