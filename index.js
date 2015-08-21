@@ -170,7 +170,7 @@ function go() {
       console.error(err)
     })
     .done(function (response) {
-      console.log('Completed')
+      console.log(response, 'Provisioning Completed.')
     })
 }
 
