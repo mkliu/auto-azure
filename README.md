@@ -1,13 +1,12 @@
 AutoAzure 
 ==============
-
-# Description
  Your Azure Automation   
 
 # Install
 
 ```
 npm install -g git+https://github.com/mkliu/auto-azure
+```
 
 # Usage
   ```
@@ -27,13 +26,14 @@ npm install -g git+https://github.com/mkliu/auto-azure
     Missing required arguments: name
     
   ```
-  In addition to the parameters above, you could override ALL params defined in the config.js. For exampple, to override which repo to deploy, you could do:
-  ```
-    autoazure --name newapp --resourceGroup testapp --webapp.repoUrl.value=http://newlocation
-  ```
   For example:
   ```
     autoazure --name newapp --resourceGroup testapp
+  ```
+  
+  In addition to the parameters above, you could override ALL params defined in the config.js. For exampple, to override which repo to deploy, you could do:
+  ```
+    autoazure --name newapp --resourceGroup testapp --webapp.repoUrl.value=http://newlocation
   ```
   
   Here's a typical log, it finds out the resource group isn't created, go ahead and create one. Then proceed with the rest.
@@ -59,8 +59,8 @@ npm install -g git+https://github.com/mkliu/auto-azure
     Executing ==>  azure group deployment create  -g testapp -f "/Users/wayliu/git/arm/auto-azure/arm/sql/azuredeploy.json" --name newappdev150821_034425sql --parameters '{"environment":{"value":"dev"},"sqlDBEdition":{"value":"Web"},"sqlServerName":{"value":"newappdev"},"sqlDbName":{"value":"DemosDB"},"sqlServerAdminLogin":{"value":"yaoguai"},"sqlServerAdminPassword":{"value":"UdBlkQJWZXuBvyA"},"sqlServerLocation":{"value":"East US"}}'
    ```
    
-   If ARM deployment fails, it will automatically retrieve error logs from server, this makes it much easier to troubleshoot what's going on. For example, a normal cli output is like this:
-   You need to login to azure portal to see what's going on. Or manually execute command and parse with your eyes.
+   If ARM deployment fails, normally you see the following, it just tells you it failed without giving you the reason. And you need to open up Azure portal to figure out why:
+   
    ```
     info:    Executing command group deployment create
     verbose: Initializing template configurations and parameters
@@ -70,7 +70,7 @@ npm install -g git+https://github.com/mkliu/auto-azure
     error:   Deployment provisioning state was not successful
     data:    DeploymentName     : test21
     data:    ResourceGroupName  : wayliutest
-    data:    ProvisioningState  : Failed
+    **data:    ProvisioningState  : Failed**
     data:    Timestamp          : 2015-08-19T07:14:13.4334547Z
     data:    Mode               : Incremental
     data:    Name                    Type          Value
