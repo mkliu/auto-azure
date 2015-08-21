@@ -101,7 +101,7 @@ function invokeAzureDeployment(templatePath, params, name, config) {
 
 function deploySql(config, params) {
   return invokeAzureDeployment(
-    path.resolve('arm', 'sql', 'azuredeploy.json'),
+    path.resolve(__dirname, 'arm', 'sql', 'azuredeploy.json'),
     params,
     'sql',
     config
@@ -110,7 +110,7 @@ function deploySql(config, params) {
 
 function deployWebapp(config, params) {
   return invokeAzureDeployment(
-    path.resolve('arm', 'webapp', 'azuredeploy.json'),
+    path.resolve(__dirname, 'arm', 'webapp', 'azuredeploy.json'),
     params,
     'webapp',
     config
