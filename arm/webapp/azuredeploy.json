@@ -116,14 +116,6 @@
                         "[resourceId('Microsoft.Web/Sites', variables('apiSiteName'))]"
                     ],
                     "properties": {
-                        "MultiChannelToDoContext": {
-                            "value": "[parameters('sqlConn')]",
-                            "type": "SQLAzure"
-                        },
-                        "SchoolContext": {
-                            "value": "[parameters('sqlConn')]",
-                            "type": "SQLAzure"
-                        },
                         "DBContext": {
                             "value": "[parameters('sqlConn')]",
                             "type": "SQLAzure"
