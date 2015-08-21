@@ -26,13 +26,14 @@ npm install -g git+https://github.com/mkliu/auto-azure
     Missing required arguments: name
     
   ```
-  In addition to the parameters above, you could override ALL params defined in the config.js. For exampple, to override which repo to deploy, you could do:
-  ```
-    autoazure --name newapp --resourceGroup testapp --webapp.repoUrl.value=http://newlocation
-  ```
   For example:
   ```
     autoazure --name newapp --resourceGroup testapp
+  ```
+  
+  In addition to the parameters above, you could override ALL params defined in the config.js. For exampple, to override which repo to deploy, you could do:
+  ```
+    autoazure --name newapp --resourceGroup testapp --webapp.repoUrl.value=http://newlocation
   ```
   
   Here's a typical log, it finds out the resource group isn't created, go ahead and create one. Then proceed with the rest.
