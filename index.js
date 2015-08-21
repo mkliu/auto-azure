@@ -9,47 +9,11 @@ var config = require('./config');
 var os = require('os');
 
 var qAzureInvoke = Q.denodeify(scripty.invoke)
-// New-AzureKeyVault -VaultName 'WayliuContosoKeyVault' -ResourceGroupName 'ContosoResourceGroup' -Location 'East Asia'
-// $key = Add-AzureKeyVaultKey -VaultName 'WayliuContosoKeyVault' -Name 'ContosoFirstKey' -Destination 'Software'
 
-// $secretvalue = ConvertTo-SecureString 'Pa$$w0rd' -AsPlainText -Force
-// $secret = Set-AzureKeyVaultSecret -VaultName 'wayliuContosoKeyVault' -Name 'SQLPassword' -SecretValue $secretvalue 
-// Get-AzureKeyVaultSecret -VaultName 'wayliuContosoKeyVault' 
-
-// azure login -u xxx--service-principal --tenant xxx
- 
 function nodeTest(a, b, callback) {
   callback(a, b);
 }
 
-function test() {
-  var qtest = Q.denodeify(nodeTest);
-
-  qtest(null, 'b')
-    .then(function (response) {
-      return qtest(null, 'b2')
-        .then(function () {
-          console.log('rethrow error error')
-          throw Error('throwing an error')
-        })
-        .catch(function (error) {
-          console.log('inside error')
-          // throw new Error('new error')
-        })
-    })
-    .then(function (response) {
-      console.log('outside then')
-    })
-    .catch(function (error) {
-      console.log('outside error', error)
-    })
-    .done(function (response) {
-      console.log('outside done', response)
-    })
-}
- 
-// test();
-   
 function ensureCreateResourceGroupExists(resourceGroupName, location) {
   console.log('Checking if resourceGroup', resourceGroupName, 'exists')
   var showCmd = {
@@ -94,14 +58,11 @@ function ensureCreateResourceGroupExists(resourceGroupName, location) {
     })
 }
 
-function escapeParamsString(paramString)
-{
-  if(os.platform() === 'win32' )
-  {
-      return '"' + paramString.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+function escapeParamsString(paramString) {
+  if (os.platform() === 'win32') {
+    return '"' + paramString.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
   }
-  else
-  {
+  else {
     // use single quotes on mac otherwise mac bash would expand things like !
     return "'" + paramString.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
   }
@@ -126,7 +87,7 @@ function invokeAzureDeployment(templatePath, params, name, config) {
 
   return qAzureInvoke(cmd)
     .then(function (response) {
-      console.log(name + 'deployed successfully', response);
+      console.log(name + ' deployed successfully');
       return response;
     })
     .catch(function (err, response) {
@@ -173,7 +134,7 @@ function setKeyVault(vaultName, keyName, value) {
 // will remove once website is loading from secrete store
 var sqlConn;
 
-function start() {
+function go() {
   qAzureInvoke(
     "config mode arm"
     ).then(function (response) {
@@ -190,10 +151,10 @@ function start() {
       
       // now the sql connection
       sqlConn = 'Data Source=tcp:' + sqlFQDN
-        + ',1433;Initial Catalog=' + config.sql.sqlDbName.value
-        + ';User Id=' + config.sql.sqlServerAdminLogin.value
-        + '@' + config.sql.sqlServerName.value
-        + ';Password=' + config.sql.sqlServerAdminPassword.value + ';';
+      + ',1433;Initial Catalog=' + config.sql.sqlDbName.value
+      + ';User Id=' + config.sql.sqlServerAdminLogin.value
+      + '@' + config.sql.sqlServerName.value
+      + ';Password=' + config.sql.sqlServerAdminPassword.value + ';';
 
       console.log('Setting sqlConnection to Keyvault:', config.keyVault.vaultName, config.appName, sqlConn);
       return setKeyVault(config.keyVault.vaultName, config.appName, sqlConn)
@@ -213,46 +174,6 @@ function start() {
     })
 }
 
-// deployWebapp(config, config.webapp)
-
-// sqlConn = 'Data Source=tcp:' + 'xxx'
-//         + ',1433;Initial Catalog=' + config.sql.sqlDbName.value
-//         + ';User Id=' + config.sql.sqlServerAdminLogin.value
-//         + '@' + config.sql.sqlServerName.value
-//         + ';Password=' + config.sql.sqlServerAdminPassword.value + ';';
-// setKeyVault(config.keyVault.vaultName, config.appName, sqlConn)
-// .then(function(response)
-//   {
-//     console.log(response)
-//   })
-start();
-    
-
-// console.log(armPath)
-
-// var sqlConn = 'Data Source=tcp:', reference(concat('Microsoft.Resources/deployments/', parameters('sqlServerName'))).outputs.fullyQualifiedDomainName.value, ',1433;Initial Catalog=', parameters('sqlDbName'), ';User Id=', parameters('sqlServerAdminLogin'), '@', parameters('sqlServerName'),Password=', parameters('sqlServerAdminPassword'), ';')]"
-
-// var steps={
-//   passthrough:function(callback,result, nextCommand) {
-//     console.log(nextCommand)
-//     if(nextCommand)
-//       nextCommand.positional = [result.length]
-//     console.log(nextCommand)
-//     callback(undefined, result);
-//   },
-//   complete:function(err, result) {
-//       console.log('Completed', err, result.length)
-//   }
-// };
-// var cmds=[
-//   {cmd:'group list'},
-//   {cmd:'group list'}
-// ];
-
-//     scripty.invoke(cmds, steps.complete)
-
-    
-// scripty.invoke('site list', function(err, results) {
-//   console.log("my groups\n" + JSON.stringify(results));
-// });
-
+module.exports.start = function (options) {
+  go();
+}

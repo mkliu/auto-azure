@@ -1,28 +1,45 @@
 
 var moment = require('moment');
+var _ = require('lodash');
 var generatePassword = require('password-generator');
-var environmentType = "dev";
-var appName = "wayliutodo" + environmentType;
-var deploymentBaseName = appName + moment().format('YYMMDD_HHmmss');
-var location = "East US";
+var nconf = require("nconf");
 
-var sqlPassword = generatePassword(15, false)
+var cmdArgs = nconf.argv().stores.argv.store;
+
+var coreParams = 
+{
+  name: "wayliutodo",
+  env: "dev",
+  location: "East US",
+  sqlUser: "yaoguai",
+  sqlPassword: generatePassword(15, false),
+  resourceGroup: "wayliutest",
+  vaultName: "wayliukeyvault",
+  clientId: "clientId",
+  clientSecret: "clientSecret"
+}
+
+_.merge(coreParams, cmdArgs)
+
+var appName = coreParams.name + coreParams.env;
+var deploymentBaseName = appName + moment().format('YYMMDD_HHmmss');
+
 var config =
   {
     appName: appName,
     deploymentBaseName: deploymentBaseName,
-    location: location,
+    location: coreParams.location,
     keyVault:
     {
-      vaultName: "wayliukeyvault",
+      vaultName: coreParams.vaultName,
     },
-    environment: environmentType,
-    resourceGroup: "wayliutest5",
+    environment: coreParams.env,
+    resourceGroup: coreParams.resourceGroup,
     webapp:
     {
       environment:
       {
-        value: environmentType
+        value: coreParams.env
       },
       siteName:
       {
@@ -34,7 +51,7 @@ var config =
       },
       siteLocation:
       {
-        value: location
+        value: coreParams.location
       },
       sku:
       {
@@ -58,11 +75,11 @@ var config =
       },
       clientId:
       {
-        value: "clientId"
+        value: coreParams.clientId
       },
       clientSecret:
       {
-        value: "clientSecret"
+        value: coreParams.clientSecret
       },
       secretUri:
       {
@@ -77,7 +94,7 @@ var config =
     {
       environment:
       {
-        value: environmentType
+        value: coreParams.env
       },
       sqlDBEdition:
       {
@@ -93,17 +110,22 @@ var config =
       },
       sqlServerAdminLogin:
       {
-        value: "yaoguai"
+        value: coreParams.sqlUser
       },
       sqlServerAdminPassword:
       {
-        value: sqlPassword
+        value: coreParams.sqlPassword
       },
       sqlServerLocation:
       {
-        value: location
+        value: coreParams.location
       }
     }
   }
 
-module.exports = config;
+nconf.argv().defaults(config);
+
+var conf = nconf.get();
+
+// console.log(JSON.stringify(conf))
+module.exports=conf
