@@ -8,6 +8,7 @@ AutoAzure
 
 ```
 npm install -g git+https://github.com/mkliu/auto-azure
+```
 
 # Usage
   ```
