@@ -18,7 +18,7 @@
   "homepage": "https://github.com/mkliu/auto-azure#readme",
   "dependencies": {
     "async": "^1.4.2",
-    "azure-scripty": "^1.0.1",
+    "azure-scripty": "git+https://github.com/mkliu/azure-scripty.git",
     "better-console": "^0.2.4",
     "bunyan": "^1.4.0",
     "colors": "^1.1.2",
